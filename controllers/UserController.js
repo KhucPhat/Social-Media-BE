@@ -12,7 +12,14 @@ const checkEmailDulicate = async (req, res) => {
     const existingEmail = await UserModel.find({
       email: email,
     });
-  } catch (error) {}
+    if (existingEmail.length) {
+      res.status(422).json({ message: "Email đã tồn tại.Vui lòng thử lại!" });
+    } else {
+      res.status(200).json({ success: true, message: "success", error: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
 };
 
 const checkFullnameDulicate = async (req, res) => {
@@ -21,16 +28,30 @@ const checkFullnameDulicate = async (req, res) => {
     const existingFullName = await UserModel.find({
       fullname: fullname,
     });
-  } catch (error) {}
+    if (existingFullName.length) {
+      res.status(422).json({ message: "Tên đã tồn tại.Vui lòng thử lại!" });
+    } else {
+      res.status(200).json({ success: true, message: "success", error: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
 };
 
 const checkUsernameDulicate = async (req, res) => {
   try {
     const username = req.body.username;
-    const existingFullName = await UserModel.find({
-      fullname: fullname,
+    const existingUsername = await UserModel.find({
+      username: username,
     });
-  } catch (error) {}
+    if (existingUsername.length) {
+      res.status(422).json({ message: "Tên đã tồn tại.Vui lòng thử lại!" });
+    } else {
+      res.status(200).json({ success: true, message: "success", error: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
 };
 
 const registerUser = async (req, res) => {
@@ -84,5 +105,8 @@ const loginUsers = async (req, res) => {
 module.exports = {
   getUser,
   registerUser,
+  checkEmailDulicate,
+  checkUsernameDulicate,
+  checkFullnameDulicate,
   loginUsers,
 };
