@@ -5,19 +5,19 @@ const userSchema = new Schema(
   {
     fullname: {
       type: String,
-      required: true,
+      require: [true, "Vui lòng điền đầy đủ tên!"],
     },
     username: {
       type: String,
-      required: true,
+      require: [true, "Vui lòng điền đầy đủ tên!"],
     },
     email: {
       type: String,
-      required: true,
+      require: [true, "Vui lòng nhập email!"],
     },
     password: {
       type: String,
-      required: true,
+      require: [true, "Vui lòng nhập mật khẩu của bạn"],
     },
   },
   {
