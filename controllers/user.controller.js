@@ -3,9 +3,9 @@ const { userService } = require("../services/services");
 const { hashData, compareData } = require("../utils/password.util");
 const apiResponse = require("../utils/apiResponse");
 const {
-  genareteAccessToken,
-  genareteVerifyToken,
+  generateAccessToken,
   verifyToken,
+  generateVerifyToken,
 } = require("../utils/token.util");
 const config = require("../config/config");
 const { sendEmailUser } = require("../utils/mailer.util");
@@ -26,14 +26,15 @@ const registerUser = async (req, res) => {
     email: email,
     password: encryptPass,
   };
+
   try {
     const emailDuplicate = await userService.findOne({ email: email });
     if (emailDuplicate)
       return apiResponse.notFoundResponse(res, "Email đã được đăng ký!");
 
-    const user = await userService.create(newUser);
+    await userService.create(newUser);
 
-    const cookieToken = genareteVerifyToken(newUser);
+    const cookieToken = generateVerifyToken(newUser);
 
     // thiết lập cookie phản hồi đến trình duyệt
     res.cookie("temp_data", cookieToken, {
@@ -43,12 +44,15 @@ const registerUser = async (req, res) => {
 
     const toEmail = `${config.APP_URL}/user/auth/verify`;
 
-    sendEmailUser(toEmail, "Xác thực đăng ký", "../views/sendEmail.html", {
+    sendEmailUser(email, "Xác thực đăng ký", "../views/sendEmail", {
       name: fullname,
       verificationLink: toEmail,
     });
 
-    return apiResponse.successResponse(res, "Đăng ký thành công");
+    return apiResponse.successResponse(
+      res,
+      "Đăng ký thành công.Vui lòng xác thực tài khoản bằng email"
+    );
   } catch (err) {
     return apiResponse.errorResponse(res, `Đã có lỗi xảy ra: ${err}`);
   }
@@ -62,18 +66,17 @@ const verifyRegister = async (req, res) => {
     if (!userData) return apiResponse.notFoundResponse(res, "Forbidden");
 
     await userService.findOneAndUpdate(
-      { email: userData.email },
+      { email: userData.data.email },
       { verified: true }
     );
 
     return apiResponse.successResponse(res, "Xác thực thành công.");
   } catch (error) {
-    console.error(err);
-    return apiResponse.ErrorResponse(res, err.message);
+    return apiResponse.errorResponse(res, err.message);
   }
 };
 
-const loginUsers = async (req, res) => {
+const loginUser = async (req, res) => {
   const data = { ...req.body };
   try {
     const user = await userService.findOne({ email: data.email });
@@ -81,11 +84,11 @@ const loginUsers = async (req, res) => {
 
     const passwordIsValid = await compareData(data.password, user.password);
     if (!passwordIsValid) {
-      return res.status(401).send("Mật khẩu không đúng");
+      return apiResponse.errorResponse(res, "Mật khẩu không đúng");
     }
 
     // create toke user
-    const accessToken = genareteAccessToken(user.id);
+    const accessToken = generateAccessToken(user.id);
     if (!accessToken)
       return apiResponse.notFoundResponse(
         res,
@@ -99,7 +102,7 @@ const loginUsers = async (req, res) => {
 
     return apiResponse.successResponseWithData(res, "Đăng nhập thành công", {
       accessToken: accessToken,
-      profile: profile,
+      info: profile,
     });
   } catch (error) {
     console.log(error);
@@ -107,9 +110,95 @@ const loginUsers = async (req, res) => {
   }
 };
 
+const forgetPass = async (req, res) => {
+  const email = req.body.email;
+  try {
+    const user = await userService.findOne({ email: email });
+    if (!user)
+      return apiResponse.notFoundResponse(
+        res,
+        "Email chưa được đăng ký tài khoản"
+      );
+
+    const otp = Math.floor(100000 + Math.random() * 90000).toString();
+
+    res.cookie("otp", otp, { maxAge: 60000, httpOnly: true });
+    res.cookie("email", email, {
+      httpOnly: true,
+    });
+
+    sendEmailUser(email, "Quên mật khẩu", "../views/sendOtp", {
+      otp: otp,
+    });
+
+    return apiResponse.successResponse(res, "success");
+  } catch (error) {
+    return apiResponse.errorResponse(res, error.message);
+  }
+};
+
+const confirmOTP = async (req, res) => {
+  const otpEmail = req.cookies.otp;
+  const dataOtp = req.body.otp;
+  try {
+    if (dataOtp !== otpEmail)
+      return apiResponse.notFoundResponse(
+        res,
+        "Mã OTP không hợp lệ.Vui lòng thử lại"
+      );
+    return apiResponse.successResponse(res, "success");
+  } catch (error) {
+    return apiResponse.errorResponse(res, error.message);
+  }
+};
+
+const newPassword = async (req, res) => {
+  const email = req.cookies.email;
+  const newPassword = req.body.new_password;
+  try {
+    if (!email) return apiResponse.notFoundResponse(res, "Email không tồn tại");
+
+    await userService.findOneAndUpdate(
+      {
+        email: email,
+      },
+      { password: hashData(newPassword) }
+    );
+    res.clearCookie("email");
+
+    return apiResponse.successResponse(res, "Thay đổi mật khẩu thành công");
+  } catch (error) {
+    return apiResponse.errorResponse(res, error.message);
+  }
+};
+
+const changePassword = async (req, res) => {
+  const data = { ...req.body };
+  try {
+    const user = await userService.findOne({ email: data.email });
+
+    const passwordIsValid = await compareData(data.password, user.password);
+    if (!passwordIsValid)
+      return apiResponse.errorResponse(res, "Mật khẩu không đúng");
+
+    await userService.findOneAndUpdate(
+      { email: user.email },
+      { password: hashData(data.new_password) }
+    );
+
+    return apiResponse.successResponse(res, "Thay đổi mật khẩu thành công");
+  } catch (error) {
+    return apiResponse.errorResponse(res, error.message);
+  }
+};
+
 module.exports = {
   getUser,
   registerUser,
-  loginUsers,
   verifyRegister,
+  loginUser,
+  forgetPass,
+  confirmOTP,
+  newPassword,
+  changePassword,
 };

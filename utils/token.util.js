@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const config = require("../config/config");
 
-exports.genareteAccessToken = (id) => {
+exports.generateAccessToken = (id) => {
   try {
     return jwt.sign(
       {
@@ -16,14 +16,14 @@ exports.genareteAccessToken = (id) => {
   }
 };
 
-exports.genareteVerifyToken = (email) => {
+exports.generateVerifyToken = (email) => {
   try {
     return jwt.sign(
       {
         data: email,
       },
       config.VERIFY_TOKEN_SECRET,
-      { expiresIn: "1w" },
+      { expiresIn: "5m" },
       { algorithm: "RS256" }
     );
   } catch (error) {
