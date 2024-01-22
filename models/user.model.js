@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const validator = require("validator");
 
 const userSchema = new Schema(
   {
@@ -16,6 +17,11 @@ const userSchema = new Schema(
     email: {
       type: String,
       require: [true, "Vui lòng nhập email!"],
+      validate: {
+        validator: (value) => {
+          return validator.isEmail(value);
+        },
+      },
       unique: true,
     },
     password: {
@@ -26,7 +32,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      default: "",
+      default: "user",
     },
     verified: {
       type: Boolean,
