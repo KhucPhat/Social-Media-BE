@@ -5,6 +5,7 @@ const { connectDatabase } = require("./config/mongo.config");
 const routes = require("./routes/route");
 const authLimiter = require("./middlewares/rateLimiter");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -17,6 +18,8 @@ app.use(helmet());
 
 // giới hạn lượt request gửi lên
 app.use(authLimiter);
+
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
