@@ -18,19 +18,20 @@ const getUser = async (req, res) => {
 const registerUser = async (req, res) => {
   const data = req.body;
   const { fullname, username, email, password } = data;
-  const encryptPass = hashData(password);
-
-  const newUser = {
-    fullname: fullname,
-    username: username,
-    email: email,
-    password: encryptPass,
-  };
 
   try {
     const emailDuplicate = await userService.findOne({ email: email });
     if (emailDuplicate)
       return apiResponse.notFoundResponse(res, "Email đã được đăng ký!");
+
+    const encryptPass = hashData(password);
+
+    const newUser = {
+      fullname: fullname,
+      username: username,
+      email: email,
+      password: encryptPass,
+    };
 
     await userService.create(newUser);
 
