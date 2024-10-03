@@ -20,7 +20,7 @@ exports.errorResponse = function (res, msg) {
     status: 0,
     message: msg,
   };
-  return res.status(200).json(data);
+  return res.status(422).json(data);
 };
 
 exports.notFoundResponse = function (res, msg) {
@@ -28,7 +28,7 @@ exports.notFoundResponse = function (res, msg) {
     status: 0,
     message: msg,
   };
-  return res.status(200).json(data);
+  return res.status(404).json(data);
 };
 
 exports.validationErrorWithData = function (res, msg, data) {
@@ -37,7 +37,7 @@ exports.validationErrorWithData = function (res, msg, data) {
     message: msg,
     data: data,
   };
-  return res.status(200).json(resData);
+  return res.status(422).json(resData);
 };
 
 exports.unauthorizedResponse = function (res, msg) {
@@ -45,5 +45,5 @@ exports.unauthorizedResponse = function (res, msg) {
     status: 0,
     message: msg,
   };
-  return res.status(200).json(data);
+  return res.status(422).json(data);
 };

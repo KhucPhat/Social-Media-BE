@@ -10,9 +10,18 @@ const {
 const config = require("../config/config");
 const { sendEmailUser } = require("../utils/mailer.util");
 
-const getUser = async (req, res) => {
-  const users = userService.find();
-  res.send(users);
+const getInfoUser = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const profile = await userService.findUserInfo(
+      { _id: userId },
+      "-password"
+    );
+
+    return apiResponse.successResponseWithData(res, "Thành công", profile);
+  } catch (error) {
+    return apiResponse.errorResponse(res, error.message);
+  }
 };
 
 const registerUser = async (req, res) => {
@@ -43,7 +52,7 @@ const registerUser = async (req, res) => {
       httpOnly: true,
     });
 
-    const toEmail = `${config.APP_URL}/user/auth/verify`;
+    const toEmail = `${config.APP_URL}/api/v1/user/auth/verify`;
 
     sendEmailUser(email, "Xác thực đăng ký", "../views/sendEmail", {
       name: fullname,
@@ -96,17 +105,11 @@ const loginUser = async (req, res) => {
         "Đăng nhập không thành công, vui lòng thử lại."
       );
 
-    const profile = await userService.findSelect(
-      { _id: user._id },
-      "-password"
-    );
-
     return apiResponse.successResponseWithData(res, "Đăng nhập thành công", {
       accessToken: accessToken,
-      info: profile,
+      id: user._id,
     });
   } catch (error) {
-    console.log(error);
     return apiResponse.errorResponse(res, error);
   }
 };
@@ -194,7 +197,7 @@ const changePassword = async (req, res) => {
 };
 
 module.exports = {
-  getUser,
+  getInfoUser,
   registerUser,
   verifyRegister,
   loginUser,
