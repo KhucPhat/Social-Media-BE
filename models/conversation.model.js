@@ -2,16 +2,19 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const conversationSchema = new Schema({
+const conversationSchema = new Schema(
+  {
     parparticipants: {
-        type: Schema.Types.ObjectId,
-        ref: "User"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
     },
     messages: {
-        type: Schema.Types.ObjectId,
-        ref: "Message",
-        default: []
-    }
-}, { timestamps: true });
+      type: mongoose.Schema.Types.Array,
+      ref: "messages",
+      default: [],
+    },
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("conversation", conversationSchema);

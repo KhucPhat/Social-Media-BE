@@ -33,4 +33,5 @@ const PostSchema = new Schema({
 });
 
 PostSchema.statics.protectedFields = ["_id", "__v"];
-module.exports = module.exports("posts", PostSchema);
+
+module.exports = mongoose.model("posts", PostSchema);

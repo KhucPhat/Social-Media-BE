@@ -1,8 +1,16 @@
-const {Conversation} = require("../models/models");
+const { Conversation } = require("../models/models");
 
-exports.findOne = async (senderId, receiverId) => Conversation.findOne({
+exports.findOneConversation = async (senderId, receiverId) =>
+  Conversation.findOne({
     participants: { $all: [senderId, receiverId] },
-});
-exports.create = async (senderId, receiverId) => Conversation.create({
+  });
+
+exports.findOneByMessage = async (senderId, messageId) =>
+  Conversation.findOne({
+    participants: { $all: [senderId, messageId] },
+  }).populate("messages");
+
+exports.createConversation = async (senderId, receiverId) =>
+  Conversation.create({
     participants: [senderId, receiverId],
-});
+  });
